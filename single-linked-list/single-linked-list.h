@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <string>
@@ -192,19 +193,22 @@ public:
 
     // Возвращает итератор, указывающий на позицию перед первым элементом односвязного списка.
     // Разыменовывать этот итератор нельзя - попытка разыменования приведёт к неопределённому поведению
-    [[nodiscard]] Iterator before_begin() noexcept {
+    [[nodiscard]] Iterator before_begin() noexcept
+    {
         return Iterator(&head_);
     }
 
     // Возвращает константный итератор, указывающий на позицию перед первым элементом односвязного списка.
     // Разыменовывать этот итератор нельзя - попытка разыменования приведёт к неопределённому поведению
-    [[nodiscard]] ConstIterator cbefore_begin() const noexcept {
-        return ConstIterator(const_cast<Node*>(&head_));
+    [[nodiscard]] ConstIterator cbefore_begin() const noexcept
+    {
+        return ConstIterator(const_cast<Node *>(&head_));
     }
 
     // Возвращает константный итератор, указывающий на позицию перед первым элементом односвязного списка.
     // Разыменовывать этот итератор нельзя - попытка разыменования приведёт к неопределённому поведению
-    [[nodiscard]] ConstIterator before_begin() const noexcept {
+    [[nodiscard]] ConstIterator before_begin() const noexcept
+    {
         return cbefore_begin();
     }
 
@@ -213,17 +217,19 @@ public:
      * Возвращает итератор на вставленный элемент
      * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
      */
-    Iterator InsertAfter(ConstIterator pos, const Type& value) {
+    Iterator InsertAfter(ConstIterator pos, const Type &value)
+    {
         assert(pos.node_ != nullptr);
-        Node* new_node = new Node(value, pos.node_->next_node);
+        Node *new_node = new Node(value, pos.node_->next_node);
         pos.node_->next_node = new_node;
         ++size_;
         return Iterator(new_node);
     }
 
-    void PopFront() noexcept {
+    void PopFront() noexcept
+    {
         assert(size_ > 0);
-        Node* del_node = head_.next_node;
+        Node *del_node = head_.next_node;
         head_.next_node = del_node->next_node;
         delete del_node;
         --size_;
@@ -233,11 +239,12 @@ public:
      * Удаляет элемент, следующий за pos.
      * Возвращает итератор на элемент, следующий за удалённым
      */
-    Iterator EraseAfter(ConstIterator pos) noexcept {
-        assert(pos.node_ != nullptr            &&
+    Iterator EraseAfter(ConstIterator pos) noexcept
+    {
+        assert(pos.node_ != nullptr &&
                pos.node_->next_node != nullptr &&
                size_ > 0);
-        Node* del_node = pos.node_->next_node;
+        Node *del_node = pos.node_->next_node;
         pos.node_->next_node = del_node->next_node;
         delete del_node;
         --size_;
@@ -258,7 +265,8 @@ public:
 
     SingleLinkedList &operator=(const SingleLinkedList &rhs)
     {
-        if(this != &rhs) {
+        if (this != &rhs)
+        {
             SingleLinkedList tmp(rhs);
             swap(tmp);
         }
@@ -267,7 +275,7 @@ public:
 
     void swap(SingleLinkedList &other) noexcept
     {
-        std::swap(head_, other.head_);
+        std::swap(head_.next_node, other.head_.next_node);
         std::swap(size_, other.size_);
     }
 
@@ -312,24 +320,21 @@ private:
     Node head_ = Node();
     size_t size_ = 0;
 
-template<typename Contaner>
-void CopyElements(Contaner cont) {
-    Node* last_node;
-    bool is_first = true;
-    for(const Type &elem: cont) {
-        Node* tmp_node = new Node(elem, nullptr);
-        if(is_first) {
-            head_.next_node = tmp_node;
-            is_first = false;
-        } else {
+    template <typename Contaner>
+    void CopyElements(Contaner cont)
+    {
+        SingleLinkedList tmp;
+        Node *last_node = &tmp.head_;
+        for (const Type &elem : cont)
+        {
+            Node *tmp_node = new Node(elem, nullptr);
             last_node->next_node = tmp_node;
+            last_node = last_node->next_node;
+            tmp.size_++;
         }
-        last_node = tmp_node;
-        ++size_;
+        swap(tmp);
     }
-}
 };
-
 
 template <typename Type>
 void swap(SingleLinkedList<Type> &lhs, SingleLinkedList<Type> &rhs) noexcept
@@ -354,8 +359,7 @@ bool operator==(const SingleLinkedList<Type> &lhs, const SingleLinkedList<Type> 
 
 template <typename Type>
 bool operator!=(const SingleLinkedList<Type> &lhs, const SingleLinkedList<Type> &rhs)
-{
-    
+{    
     return !(lhs == rhs);
 }
 
@@ -374,7 +378,7 @@ bool operator<=(const SingleLinkedList<Type> &lhs, const SingleLinkedList<Type> 
 template <typename Type>
 bool operator>(const SingleLinkedList<Type> &lhs, const SingleLinkedList<Type> &rhs)
 {
-    return (!(lhs < rhs) && lhs != rhs);
+    return rhs < lhs;
 }
 
 template <typename Type>
